@@ -1,0 +1,43 @@
+{
+  "name": "web-cms-frontend",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/web-cms-frontend/src",
+  "projectType": "application",
+  "targets": {
+    "serve": {
+      "executor": "@nx/vite:dev-server",
+      "dependsOn": ["^build"],
+      "options": {
+        "buildTarget": "web-cms-frontend:build"
+      }
+    },
+    "serve-with-watch": {
+      "executor": "nx:run-commands",
+      "options": {
+        "parallel": true,
+        "commands": [
+          "nx watch-deps web-cms-frontend",
+          "nx serve web-cms-frontend"
+        ]
+      }
+    },
+    "dev": {
+      "executor": "nx:run-commands",
+      "options": {
+        "parallel": true,
+        "commands": [
+          "nx watch --projects=layouts,store -- nx build {args.projectName}",
+          "nx serve web-cms-frontend"
+        ]
+      }
+    },
+    "build-libs": {
+      "executor": "nx:run-many",
+      "options": {
+        "targets": ["build"],
+        "projects": ["layouts", "store"]
+      }
+    }
+  },
+  "tags": ["scope:cms", "type:app"]
+}

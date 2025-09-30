@@ -5,6 +5,18 @@
   "references": [
     {
       "path": "./apps/web-frontend"
+    },
+    {
+      "path": "./apps/web-cms-frontend"
+    },
+    {
+      "path": "./libs/store"
+    },
+    {
+      "path": "./libs/core"
+    },
+    {
+      "path": "./libs/shared"
     }
   ]
 }

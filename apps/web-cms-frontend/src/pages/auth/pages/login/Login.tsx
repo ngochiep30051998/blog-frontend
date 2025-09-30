@@ -3,27 +3,69 @@ import { LOCAL_USER_KEY } from '@blog-frontend/shared';
 import './Login.scss';
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
+import * as yup from 'yup';
 import cache from '@blog-frontend/core';
 
 // Import SVG icons
-import LoginIcon from '@cms/assets/svgs/login-icon.svg';
 import EmailIcon from '@cms/assets/svgs/email-icon.svg';
 import PasswordIcon from '@cms/assets/svgs/password-icon.svg';
 import EyeIcon from '@cms/assets/svgs/eye-icon.svg';
 import EyeOffIcon from '@cms/assets/svgs/eye-off-icon.svg';
 import GoogleIcon from '@cms/assets/svgs/google-icon.svg';
-import FacebookIcon from '@cms/assets/svgs/facebook-icon.svg';
-import AppleIcon from '@cms/assets/svgs/apple-icon.svg';
+
+// Validation schema
+const loginSchema = yup.object().shape({
+  email: yup
+    .string()
+    .required('Email is required')
+    .email('Please enter a valid email address'),
+  password: yup
+    .string()
+    .required('Password is required')
+    .min(6, 'Password must be at least 6 characters long')
+});
+
+// Form data type
+interface LoginFormData {
+  email: string;
+  password: string;
+}
 
 const Login = () => {
   const navigate = useNavigate();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
-  const handleLogin = () => {
-    cache.setCache(LOCAL_USER_KEY, { token: 'ssss' });
-    navigate('/');
+  // React Hook Form setup
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting }
+  } = useForm<LoginFormData>({
+    resolver: yupResolver(loginSchema),
+    mode: 'onChange',
+    defaultValues: {
+      email: '',
+      password: ''
+    }
+  });
+
+
+
+  const onSubmit = async (data: LoginFormData) => {
+    try {
+      // Simulate API call
+      console.log('Login data:', data);
+      
+      // Store user data in cache
+      cache.setCache(LOCAL_USER_KEY, { token: 'ssss' });
+      
+      // Navigate to home page
+      navigate('/');
+    } catch (error) {
+      console.error('Login error:', error);
+    }
   };
 
   const togglePasswordVisibility = () => {
@@ -51,7 +93,7 @@ const Login = () => {
         </div>
 
         {/* Login form */}
-        <form onSubmit={(e) => { e.preventDefault(); handleLogin(); }} className="space-y-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           {/* Email input */}
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
@@ -59,12 +101,15 @@ const Login = () => {
             </div>
             <input
               type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              {...register('email')}
               placeholder="Email"
-              className="w-full pl-12 pr-4 py-4 border-0 rounded-2xl text-gray-900 placeholder-gray-500 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all duration-200"
-              required
+              className={`w-full pl-12 shadow-xl pr-4 py-4 border-0 rounded-2xl text-gray-900 placeholder-gray-500 focus:bg-white focus:ring-2 focus:outline-none transition-all duration-200 ${
+                errors.email ? 'focus:ring-red-500 bg-red-50' : 'focus:ring-blue-500'
+              }`}
             />
+            {errors.email && (
+              <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
+            )}
           </div>
 
           {/* Password input */}
@@ -74,11 +119,11 @@ const Login = () => {
             </div>
             <input
               type={showPassword ? 'text' : 'password'}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              {...register('password')}
               placeholder="Password"
-              className="w-full pl-12 pr-12 py-4 border-0 rounded-2xl text-gray-900 placeholder-gray-500 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all duration-200"
-              required
+              className={`w-full pl-12 shadow-xl pr-12 py-4 border-0 rounded-2xl text-gray-900 placeholder-gray-500 focus:bg-white focus:ring-2 focus:outline-none transition-all duration-200 ${
+                errors.password ? 'focus:ring-red-500 bg-red-50' : 'focus:ring-blue-500'
+              }`}
             />
             <button
               type="button"
@@ -91,6 +136,9 @@ const Login = () => {
                 className="w-5 h-5 text-gray-400 hover:text-gray-600 transition-colors"
               />
             </button>
+            {errors.password && (
+              <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>
+            )}
           </div>
 
           {/* Forgot password link */}
@@ -103,9 +151,14 @@ const Login = () => {
           {/* Submit button */}
           <button
             type="submit"
-            className="w-full bg-gray-900 text-white py-4 rounded-2xl font-medium hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-all duration-200 transform hover:scale-[0.98]"
+            disabled={isSubmitting}
+            className={`w-full py-4 rounded-2xl font-medium focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 transition-all duration-200 transform hover:scale-[0.98] ${
+              isSubmitting
+                ? 'bg-gray-400 cursor-not-allowed'
+                : 'bg-cyan-500 shadow-lg shadow-cyan-500/50 text-white hover:bg-cyan-800'
+            }`}
           >
-            Get Started
+            {isSubmitting ? 'Signing in...' : 'Get Started'}
           </button>
         </form>
 

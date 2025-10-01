@@ -1,12 +1,13 @@
 
-import { LOCAL_USER_KEY } from '@blog-frontend/shared';
+import { ACCESS_TOKEN_KEY } from '@blog-frontend/shared';
 import './Login.scss';
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
-import cache from '@blog-frontend/core';
+import { cache } from '@blog-frontend/core';
+import { login } from '@cms/services/api.service';
 
 // Import SVG icons
 import EmailIcon from '@cms/assets/svgs/email-icon.svg';
@@ -17,10 +18,10 @@ import GoogleIcon from '@cms/assets/svgs/google-icon.svg';
 
 // Validation schema
 const loginSchema = yup.object().shape({
-  email: yup
+  identifier: yup
     .string()
-    .required('Email is required')
-    .email('Please enter a valid email address'),
+    .required('Email or username is required')
+    .min(3, 'Please enter a valid email or username'),
   password: yup
     .string()
     .required('Password is required')
@@ -29,7 +30,7 @@ const loginSchema = yup.object().shape({
 
 // Form data type
 interface LoginFormData {
-  email: string;
+  identifier: string;
   password: string;
 }
 
@@ -46,7 +47,7 @@ const Login = () => {
     resolver: yupResolver(loginSchema),
     mode: 'onChange',
     defaultValues: {
-      email: '',
+      identifier: '',
       password: ''
     }
   });
@@ -55,16 +56,19 @@ const Login = () => {
 
   const onSubmit = async (data: LoginFormData) => {
     try {
-      // Simulate API call
       console.log('Login data:', data);
       
+      // Call login API
+      const response = await login(data.identifier, data.password);
+      console.log('Login response:', response);
       // Store user data in cache
-      cache.setCache(LOCAL_USER_KEY, { token: 'ssss' });
-      
+      cache.setCache(ACCESS_TOKEN_KEY, response.data.accessToken);
+
       // Navigate to home page
       navigate('/');
     } catch (error) {
       console.error('Login error:', error);
+      // You can add error handling here (show toast, set error state, etc.)
     }
   };
 
@@ -85,7 +89,7 @@ const Login = () => {
 
         {/* Title */}
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Sign in with email</h1>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Sign in to your account</h1>
           <p className="text-gray-600 text-sm leading-relaxed">
             Make a new doc to bring your words, data,<br />
             and teams together. For free
@@ -94,21 +98,20 @@ const Login = () => {
 
         {/* Login form */}
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          {/* Email input */}
+          {/* Identifier input */}
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-              <img src={EmailIcon} alt="Email" className="w-5 h-5 text-gray-400" />
+              <img src={EmailIcon} alt="Email or Username" className="w-5 h-5 text-gray-400" />
             </div>
             <input
-              type="email"
-              {...register('email')}
-              placeholder="Email"
-              className={`w-full pl-12 shadow-xl pr-4 py-4 border-0 rounded-2xl text-gray-900 placeholder-gray-500 focus:bg-white focus:ring-2 focus:outline-none transition-all duration-200 ${
-                errors.email ? 'focus:ring-red-500 bg-red-50' : 'focus:ring-blue-500'
-              }`}
+              type="text"
+              {...register('identifier')}
+              placeholder="Email or Username"
+              className={`w-full pl-12 shadow-xl pr-4 py-4 border-0 rounded-2xl text-gray-900 placeholder-gray-500 focus:bg-white focus:ring-2 focus:outline-none transition-all duration-200 ${                errors.identifier ? 'focus:ring-red-500 bg-red-50' : 'focus:ring-blue-500'
+                }`}
             />
-            {errors.email && (
-              <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
+            {errors.identifier && (
+              <p className="mt-1 text-sm text-red-600">{errors.identifier.message}</p>
             )}
           </div>
 
@@ -121,18 +124,17 @@ const Login = () => {
               type={showPassword ? 'text' : 'password'}
               {...register('password')}
               placeholder="Password"
-              className={`w-full pl-12 shadow-xl pr-12 py-4 border-0 rounded-2xl text-gray-900 placeholder-gray-500 focus:bg-white focus:ring-2 focus:outline-none transition-all duration-200 ${
-                errors.password ? 'focus:ring-red-500 bg-red-50' : 'focus:ring-blue-500'
-              }`}
+              className={`w-full pl-12 shadow-xl pr-12 py-4 border-0 rounded-2xl text-gray-900 placeholder-gray-500 focus:bg-white focus:ring-2 focus:outline-none transition-all duration-200 ${errors.password ? 'focus:ring-red-500 bg-red-50' : 'focus:ring-blue-500'
+                }`}
             />
             <button
               type="button"
               onClick={togglePasswordVisibility}
               className="absolute inset-y-0 right-0 pr-4 flex items-center"
             >
-              <img 
-                src={showPassword ? EyeOffIcon : EyeIcon} 
-                alt={showPassword ? 'Hide password' : 'Show password'} 
+              <img
+                src={showPassword ? EyeOffIcon : EyeIcon}
+                alt={showPassword ? 'Hide password' : 'Show password'}
                 className="w-5 h-5 text-gray-400 hover:text-gray-600 transition-colors"
               />
             </button>
@@ -144,11 +146,10 @@ const Login = () => {
           <button
             type="submit"
             disabled={isSubmitting}
-            className={`w-full py-4 rounded-2xl font-medium focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 transition-all duration-200 transform hover:scale-[0.98] ${
-              isSubmitting
+            className={`w-full py-4 rounded-2xl font-medium focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 transition-all duration-200 transform hover:scale-[0.98] ${isSubmitting
                 ? 'bg-gray-400 cursor-not-allowed'
                 : 'bg-cyan-500 shadow-lg shadow-cyan-500/50 text-white hover:bg-cyan-800'
-            }`}
+              }`}
           >
             {isSubmitting ? 'Signing in...' : 'Get Started'}
           </button>

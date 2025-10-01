@@ -7,7 +7,7 @@ export const Router: RouteObject = {
   path: '/',
   children: [
     {
-      path: '/',
+      path: 'home',
       element: <Home />
     },
   ],

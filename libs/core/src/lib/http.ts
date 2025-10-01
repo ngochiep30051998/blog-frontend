@@ -22,7 +22,7 @@ HTTP.interceptors.request.use((req) => {
 
 HTTP.interceptors.response.use(
   (res) => {
-    return res;
+    return res.data;
   },
   (err) => {
     const data = err.response && err.response.data;

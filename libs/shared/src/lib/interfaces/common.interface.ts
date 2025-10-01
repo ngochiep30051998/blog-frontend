@@ -9,12 +9,14 @@ export interface IMenuItem {
     component?: React.ReactNode,
     onClick?: () => void
 }
-
+export interface IMeta {
+    timestamp: string;
+    loginAt: string;
+}
 export interface IResponse<T>{
-    code: string
+    statusCode: number
     message: string
-    requestId: string
-    timestamp: string
+    meta?: IMeta;
     data: T
 }
 

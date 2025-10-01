@@ -3,7 +3,7 @@
 
 export function BlogFrontendShared() {
   return (
-    <div className={styles['container']}>
+    <div className={`container`}>
       <h1>Welcome to BlogFrontendShared!</h1>
     </div>
   );

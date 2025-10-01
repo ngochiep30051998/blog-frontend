@@ -26,7 +26,7 @@
       "options": {
         "parallel": true,
         "commands": [
-          "nx watch --projects=layouts,store -- nx build {args.projectName}",
+          "nx watch --projects=store -- nx build {args.projectName}",
           "nx serve web-cms-frontend"
         ]
       }
@@ -35,7 +35,7 @@
       "executor": "nx:run-many",
       "options": {
         "targets": ["build"],
-        "projects": ["layouts", "store"]
+        "projects": ["store"]
       }
     }
   },

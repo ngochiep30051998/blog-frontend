@@ -69,25 +69,3 @@ export function formatAttributes(attributes: AttributesData): string {
         .join('\n');
 }
 
-
-export function getIdByName<
-	T extends { id: string; name: string; children: T[] },
->(
-	arr: T[],
-	name: string,
-	idKey: keyof T | string = 'id',
-	nameKey: keyof T | string = 'name',
-): T {
-	for (let i = 0; i < arr.length; i += 1) {
-		if (arr[i][nameKey] === name) {
-			return arr[i][idKey];
-		}
-		if (arr[i].children?.length > 0) {
-			const id = getIdByName(arr[i].children, name, idKey, nameKey);
-			if (id) {
-				return id;
-			}
-		}
-	}
-	return null;
-}

@@ -140,14 +140,6 @@ const Login = () => {
               <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>
             )}
           </div>
-
-          {/* Forgot password link */}
-          <div className="text-right">
-            <a href="/forgot-password" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
-              Forgot password?
-            </a>
-          </div>
-
           {/* Submit button */}
           <button
             type="submit"
@@ -163,20 +155,20 @@ const Login = () => {
         </form>
 
         {/* Divider */}
-        <div className="my-6">
+        <div className="my-4">
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-gray-200"></div>
             </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-4 bg-white text-gray-500">Or sign in with</span>
+            <div className="relative flex justify-center text-sm ">
+              <span className="px-4 bg-white text-gray-500 rounded-2xl">Or sign in with</span>
             </div>
           </div>
         </div>
 
         {/* Social login buttons */}
         <div className="flex space-x-4">
-          <button className="flex-1 flex items-center justify-center p-3 bg-gray-50 hover:bg-gray-100 rounded-2xl transition-colors">
+          <button className="flex-1 flex items-center justify-center p-2 bg-gray-50 hover:bg-gray-100 rounded-2xl transition-colors">
             <img src={GoogleIcon} alt="Google" className="w-6 h-6" />
           </button>
         </div>

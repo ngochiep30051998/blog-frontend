@@ -2,15 +2,14 @@
 import axios from "axios";
 import { transformReq } from "./helper";
 import cache from './cache';
-
-const LOCAL_USER_KEY = 'local_user';
+import { ACCESS_TOKEN_KEY } from '@blog-frontend/shared';
 
 const HTTP = axios.create({
   baseURL: `${import.meta.env.VITE_PUBLIC_API_URL}`
 })
 
 HTTP.interceptors.request.use((req) => {
-  const token = cache.getCache(LOCAL_USER_KEY)?.data?.token;
+  const token = cache.getCache(ACCESS_TOKEN_KEY)?.data;
   if (token && req.headers) {
     req.headers['Authorization'] = `Bearer ${token}`
   }

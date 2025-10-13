@@ -1,99 +1,160 @@
-import { Table, Button, Space, Tag, Input, Popconfirm } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined, SearchOutlined } from '@ant-design/icons';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { Table, Button, Space, Tag, Input, Popconfirm, message, Tooltip, Badge } from 'antd';
+import {
+  PlusOutlined,
+  EditOutlined,
+  DeleteOutlined,
+  SearchOutlined,
+  EyeOutlined,
+  ReloadOutlined,
+} from '@ant-design/icons';
 import PageHeader from '../../../components/PageHeader';
 import Card from '../../../components/Card';
+import CategoryFormModal from '../components/CategoryFormModal';
+import { ICategory } from '@blog-frontend/shared';
+import categoryService from '../../../services/category.service';
 import type { ColumnsType } from 'antd/es/table';
-
-interface Category {
-  key: string;
-  id: number;
-  name: string;
-  slug: string;
-  postCount: number;
-  description: string;
-  status: 'active' | 'inactive';
-  createdAt: string;
-}
+import '../categories.css';
 
 const Categories = () => {
-  const [loading] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [searchText, setSearchText] = useState('');
+  const [categories, setCategories] = useState<ICategory[]>([]);
+  const [filteredCategories, setFilteredCategories] = useState<ICategory[]>([]);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<ICategory | null>(null);
 
-  const [categories] = useState<Category[]>([
-    {
-      key: '1',
-      id: 1,
-      name: 'React',
-      slug: 'react',
-      postCount: 45,
-      description: 'Bài viết về React và React ecosystem',
-      status: 'active',
-      createdAt: '2025-01-15',
-    },
-    {
-      key: '2',
-      id: 2,
-      name: 'Next.js',
-      slug: 'nextjs',
-      postCount: 32,
-      description: 'Hướng dẫn và tips về Next.js',
-      status: 'active',
-      createdAt: '2025-02-10',
-    },
-    {
-      key: '3',
-      id: 3,
-      name: 'TypeScript',
-      slug: 'typescript',
-      postCount: 28,
-      description: 'TypeScript best practices',
-      status: 'active',
-      createdAt: '2025-03-05',
-    },
-    {
-      key: '4',
-      id: 4,
-      name: 'CSS',
-      slug: 'css',
-      postCount: 56,
-      description: 'CSS và styling',
-      status: 'inactive',
-      createdAt: '2025-01-20',
-    },
-  ]);
+  useEffect(() => {
+    loadCategories();
+  }, []);
 
-  const handleDelete = (id: number) => {
-    console.log('Delete category:', id);
+  useEffect(() => {
+    if (searchText) {
+      const filtered = categories.filter(
+        (cat) =>
+          cat.name.toLowerCase().includes(searchText.toLowerCase()) ||
+          cat.description?.toLowerCase().includes(searchText.toLowerCase()) ||
+          cat.slug.toLowerCase().includes(searchText.toLowerCase())
+      );
+      setFilteredCategories(filtered);
+    } else {
+      setFilteredCategories(categories);
+    }
+  }, [searchText, categories]);
+
+  const loadCategories = async () => {
+    setLoading(true);
+    try {
+      const response = await categoryService.getAll();
+      if (response.data) {
+        setCategories(response.data);
+        setFilteredCategories(response.data);
+      }
+    } catch (error: any) {
+      message.error(error?.message || 'Không thể tải danh sách danh mục');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const columns: ColumnsType<Category> = [
-    {
-      title: 'ID',
-      dataIndex: 'id',
-      key: 'id',
-      width: 60,
-    },
+  const handleDelete = async (id: string) => {
+    try {
+      await categoryService.delete(id);
+      message.success('Xóa danh mục thành công!');
+      loadCategories();
+    } catch (error: any) {
+      message.error(error?.message || 'Không thể xóa danh mục');
+    }
+  };
+
+  const handleEdit = (category: ICategory) => {
+    setSelectedCategory(category);
+    setModalVisible(true);
+  };
+
+  const handleAdd = () => {
+    setSelectedCategory(null);
+    setModalVisible(true);
+  };
+
+  const handleModalClose = () => {
+    setModalVisible(false);
+    setSelectedCategory(null);
+  };
+
+  const handleModalSuccess = () => {
+    loadCategories();
+  };
+
+  const getCategoryLevel = (categoryId: string): number => {
+    const category = categories.find((c) => c.id === categoryId);
+    if (!category || !category.parentId) return 0;
+    return 1 + getCategoryLevel(category.parentId);
+  };
+
+  const columns: ColumnsType<ICategory> = [
     {
       title: 'Tên danh mục',
       dataIndex: 'name',
       key: 'name',
-      render: (text: string) => (
-        <span className="font-medium text-gray-900">{text}</span>
-      ),
-    },
-    {
-      title: 'Slug',
-      dataIndex: 'slug',
-      key: 'slug',
-      render: (text: string) => (
-        <code className="px-2 py-1 bg-gray-100 rounded text-sm">{text}</code>
-      ),
+      width: 250,
+      fixed: 'left',
+      render: (text: string, record: ICategory) => {
+        const level = record.level || getCategoryLevel(record.id);
+        const indent = level * 20;
+        return (
+          <div className="flex items-center gap-3" style={{ paddingLeft: `${indent}px` }}>
+            {record.icon && (
+              <div
+                className="w-10 h-10 rounded-lg flex items-center justify-center text-white text-lg"
+                style={{ backgroundColor: record.color || '#3b82f6' }}
+              >
+                <i className={record.icon} />
+              </div>
+            )}
+            <div className="flex-1">
+              <div className="font-medium text-gray-900">{text}</div>
+              <div className="text-xs text-gray-500">{record.slug}</div>
+            </div>
+          </div>
+        );
+      },
     },
     {
       title: 'Mô tả',
       dataIndex: 'description',
       key: 'description',
+      width: 300,
+      ellipsis: {
+        showTitle: false,
+      },
+      render: (text: string) =>
+        text ? (
+          <Tooltip title={text}>
+            <span className="text-sm text-gray-600">{text}</span>
+          </Tooltip>
+        ) : (
+          <span className="text-xs text-gray-400 italic">Chưa có mô tả</span>
+        ),
+    },
+    {
+      title: 'Ảnh bìa',
+      dataIndex: 'coverImageUrl',
+      key: 'coverImageUrl',
+      width: 100,
+      align: 'center',
+      render: (url: string) =>
+        url ? (
+          <img
+            src={url}
+            alt="Cover"
+            className="w-16 h-16 object-cover rounded-lg border border-gray-200"
+          />
+        ) : (
+          <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center">
+            <EyeOutlined className="text-gray-400" />
+          </div>
+        ),
     },
     {
       title: 'Số bài viết',
@@ -101,20 +162,50 @@ const Categories = () => {
       key: 'postCount',
       width: 120,
       align: 'center',
+      sorter: (a, b) => a.postCount - b.postCount,
       render: (count: number) => (
-        <span className="inline-flex items-center justify-center w-10 h-10 bg-blue-100 text-blue-600 rounded-full font-medium">
-          {count}
+        <Badge
+          count={count}
+          showZero
+          style={{ backgroundColor: count > 0 ? '#52c41a' : '#d9d9d9' }}
+        />
+      ),
+    },
+    {
+      title: 'Lượt xem',
+      dataIndex: 'totalViews',
+      key: 'totalViews',
+      width: 120,
+      align: 'center',
+      sorter: (a, b) => a.totalViews - b.totalViews,
+      render: (views: number) => (
+        <span className="text-sm font-medium text-blue-600">
+          {views.toLocaleString()}
         </span>
       ),
     },
     {
+      title: 'Thứ tự',
+      dataIndex: 'sortOrder',
+      key: 'sortOrder',
+      width: 80,
+      align: 'center',
+      sorter: (a, b) => a.sortOrder - b.sortOrder,
+    },
+    {
       title: 'Trạng thái',
-      dataIndex: 'status',
-      key: 'status',
+      dataIndex: 'isActive',
+      key: 'isActive',
       width: 120,
-      render: (status: string) => (
-        <Tag color={status === 'active' ? 'green' : 'default'}>
-          {status === 'active' ? 'Hoạt động' : 'Không hoạt động'}
+      align: 'center',
+      filters: [
+        { text: 'Hoạt động', value: true },
+        { text: 'Không hoạt động', value: false },
+      ],
+      onFilter: (value, record) => record.isActive === value,
+      render: (isActive: boolean) => (
+        <Tag color={isActive ? 'green' : 'default'}>
+          {isActive ? 'Hoạt động' : 'Tắt'}
         </Tag>
       ),
     },
@@ -123,27 +214,50 @@ const Categories = () => {
       dataIndex: 'createdAt',
       key: 'createdAt',
       width: 120,
+      sorter: (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+      render: (date: string) => new Date(date).toLocaleDateString('vi-VN'),
     },
     {
       title: 'Thao tác',
       key: 'action',
       width: 120,
       fixed: 'right',
+      align: 'center',
       render: (_, record) => (
         <Space size="small">
-          <Button
-            type="text"
-            icon={<EditOutlined />}
-            onClick={() => console.log('Edit', record.id)}
-          />
+          <Tooltip title="Chỉnh sửa">
+            <Button
+              type="text"
+              icon={<EditOutlined />}
+              onClick={() => handleEdit(record)}
+              className="text-blue-600 hover:text-blue-700"
+            />
+          </Tooltip>
           <Popconfirm
             title="Xóa danh mục"
-            description="Bạn có chắc chắn muốn xóa danh mục này?"
+            description={
+              <div>
+                <p>Bạn có chắc chắn muốn xóa danh mục này?</p>
+                {record.postCount > 0 && (
+                  <p className="text-red-500 text-xs mt-1">
+                    Cảnh báo: Danh mục có {record.postCount} bài viết!
+                  </p>
+                )}
+              </div>
+            }
             onConfirm={() => handleDelete(record.id)}
             okText="Xóa"
             cancelText="Hủy"
+            okButtonProps={{ danger: true }}
           >
-            <Button type="text" danger icon={<DeleteOutlined />} />
+            <Tooltip title="Xóa">
+              <Button
+                type="text"
+                danger
+                icon={<DeleteOutlined />}
+                className="hover:text-red-600"
+              />
+            </Tooltip>
           </Popconfirm>
         </Space>
       ),
@@ -153,38 +267,70 @@ const Categories = () => {
   return (
     <div>
       <PageHeader
-        title="Danh mục"
-        description="Quản lý danh mục bài viết"
+        title="Quản lý danh mục"
+        description={`Tổng ${categories.length} danh mục`}
         extra={
-          <Button type="primary" icon={<PlusOutlined />} size="large">
-            Thêm danh mục
-          </Button>
+          <Space>
+            <Button
+              icon={<ReloadOutlined />}
+              onClick={loadCategories}
+              loading={loading}
+              size="large"
+            >
+              Làm mới
+            </Button>
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={handleAdd}
+              size="large"
+            >
+              Thêm danh mục
+            </Button>
+          </Space>
         }
       />
 
       <Card>
-        <div className="mb-4">
+        <div className="mb-4 flex items-center gap-4">
           <Input
-            placeholder="Tìm kiếm danh mục..."
-            prefix={<SearchOutlined />}
+            placeholder="Tìm kiếm theo tên, slug, mô tả..."
+            prefix={<SearchOutlined className="text-gray-400" />}
             value={searchText}
             onChange={(e) => setSearchText(e.target.value)}
-            className="max-w-xs"
+            className="max-w-md"
             size="large"
+            allowClear
           />
+          <div className="flex-1 text-right text-sm text-gray-500">
+            Hiển thị <span className="font-medium">{filteredCategories.length}</span> /{' '}
+            <span className="font-medium">{categories.length}</span> danh mục
+          </div>
         </div>
 
         <Table
           columns={columns}
-          dataSource={categories}
+          dataSource={filteredCategories}
+          rowKey="id"
           loading={loading}
           pagination={{
-            total: categories.length,
-            pageSize: 10,
+            total: filteredCategories.length,
+            pageSize: 20,
+            showSizeChanger: true,
             showTotal: (total) => `Tổng ${total} danh mục`,
+            pageSizeOptions: ['10', '20', '50', '100'],
           }}
+          scroll={{ x: 1400 }}
+          className="category-table"
         />
       </Card>
+
+      <CategoryFormModal
+        visible={modalVisible}
+        category={selectedCategory}
+        onClose={handleModalClose}
+        onSuccess={handleModalSuccess}
+      />
     </div>
   );
 };

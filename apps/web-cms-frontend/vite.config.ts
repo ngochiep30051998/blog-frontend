@@ -15,9 +15,18 @@ export default defineConfig({
     },
   },
   
+  optimizeDeps: {
+    include: ['react', 'react-dom', 'react-router-dom', 'antd', '@ant-design/icons'],
+    exclude: ['@blog-frontend/shared', '@blog-frontend/core', '@blog-frontend/store'],
+    force: true,
+  },
+  
   server: {
     port: 3000,
     host: 'localhost',
+    fs: {
+      allow: ['../..'],
+    },
     watch: {
       // Watch for changes in lib source files
       ignored: ['!../../libs/**/src/**'],

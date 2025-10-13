@@ -1,6 +1,9 @@
-import { Outlet, RouterProvider, createBrowserRouter } from 'react-router-dom';
+import { RouterProvider, createBrowserRouter } from 'react-router-dom';
 import * as Auth from '../pages/auth';
 import * as Home from '../pages/home';
+import * as Posts from '../pages/posts';
+import * as Categories from '../pages/categories';
+import * as Settings from '../pages/settings';
 import { IMenuItem } from '@blog-frontend/shared';
 import { PrivateGuard } from '../guards/PrivateGuard';
 import { PublicGuard } from '../guards/PublicGuard';
@@ -9,7 +12,10 @@ import { AuthLayout } from '../layouts/AuthLayout';
 
 
 const modules = [
-    Home
+    Home,
+    Posts,
+    Categories,
+    Settings
 ]
 
 const router = createBrowserRouter([

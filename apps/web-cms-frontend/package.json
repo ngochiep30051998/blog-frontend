@@ -1,5 +1,9 @@
 {
   "name": "@blog-frontend/web-cms-frontend",
   "version": "0.0.1",
-  "private": true
+  "private": true,
+  "dependencies": {
+    "@ant-design/icons": "^6.1.0",
+    "antd": "^5.27.4"
+  }
 }

@@ -61,9 +61,3 @@ export interface ICategoryFilter {
   page?: number;
   limit?: number;
 }
-
-// Upload image response
-export interface IUploadImageResponse {
-  url: string;
-  publicId?: string;
-}

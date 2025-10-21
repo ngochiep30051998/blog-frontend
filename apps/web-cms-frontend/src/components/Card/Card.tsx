@@ -7,7 +7,7 @@ interface CardProps {
   children: ReactNode;
   loading?: boolean;
   className?: string;
-  bordered?: boolean;
+  variant?: "borderless" | "outlined" | undefined;
 }
 
 export function Card({
@@ -16,14 +16,14 @@ export function Card({
   children,
   loading = false,
   className = '',
-  bordered = true,
+  variant = undefined,
 }: CardProps) {
   return (
     <AntCard
       title={title}
       extra={extra}
       loading={loading}
-      bordered={bordered}
+      variant={variant}
       className={`shadow-sm hover:shadow-md transition-shadow ${className}`}
     >
       {children}

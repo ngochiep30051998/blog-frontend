@@ -12,8 +12,9 @@ import {
   message,
 } from 'antd';
 import { UploadOutlined, PictureOutlined } from '@ant-design/icons';
-import { ICategory, ICreateCategoryDto } from '@blog-frontend/shared';
+import { FileType, ICategory, ICreateCategoryDto } from '@blog-frontend/shared';
 import categoryService from '../../../services/category.service';
+import { uploadImage } from '@cms/services/api.service';
 
 const { TextArea } = Input;
 
@@ -112,10 +113,12 @@ export function CategoryFormModal({
   const handleImageUpload = async (file: File) => {
     setUploading(true);
     try {
-      const response = await categoryService.uploadImage(file);
-      if (response.data?.url) {
-        setImageUrl(response.data.url);
-        form.setFieldsValue({ coverImageUrl: response.data.url });
+      const response = await uploadImage({
+        file, type: FileType.THUMBNAIL,
+      });
+      if (response.data?.cloudinaryUrl) {
+        setImageUrl(response.data.cloudinaryUrl);
+        form.setFieldsValue({ coverImageUrl: response.data.cloudinaryUrl });
         message.success('Upload ảnh thành công!');
       }
     } catch (error: any) {
@@ -187,7 +190,7 @@ export function CategoryFormModal({
       onCancel={onClose}
       footer={null}
       width={800}
-      destroyOnClose
+      destroyOnHidden
     >
       <Form form={form} layout="vertical" onFinish={handleSubmit} className="mt-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

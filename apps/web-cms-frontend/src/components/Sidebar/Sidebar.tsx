@@ -29,7 +29,7 @@ function getItem(
 const menuItems: MenuItem[] = [
   getItem('Dashboard', '/home', <HomeOutlined />),
   getItem('Bài viết', '/posts', <FileTextOutlined />, [
-    getItem('Tất cả bài viết', '/posts'),
+    getItem('Tất cả bài viết', ''),
     getItem('Thêm mới', '/posts/create'),
   ]),
   getItem('Danh mục', '/categories', <TagsOutlined />),

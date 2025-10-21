@@ -5,7 +5,6 @@ import {
   ICreateCategoryDto,
   IUpdateCategoryDto,
   ICategoryFilter,
-  IUploadImageResponse,
 } from '@blog-frontend/shared';
 
 const API_URL = '/posts/categories';
@@ -55,18 +54,6 @@ export const categoryService = {
     return HTTP.delete(`${API_URL}/${id}`);
   },
 
-  /**
-   * Upload category cover image
-   */
-  uploadImage: async (file: File): Promise<IResponse<IUploadImageResponse>> => {
-    const formData = new FormData();
-    formData.append('file', file);
-    return HTTP.post(`${API_URL}/upload`, formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
-  },
 };
 
 export default categoryService;
